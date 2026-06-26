@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Social Work Program Pressure Map</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">Exclusively Online MSW Program</p>
+          <h1>Social Work Program Pressure Map</h1>
+          <p class="subtitle">
+            A 14-week interactive view of full-time MSW course assignments, field placement hours, and likely workload pressure points.
+          </p>
+        </div>
+        <div class="header-actions">
+          <button id="filterToggle" class="secondary-button" type="button" aria-expanded="true" aria-controls="filterDrawer">
+            Filters
+          </button>
+          <button id="resetBtn" class="secondary-button" type="button">Reset Moves</button>
+          <button id="exportBtn" class="primary-button" type="button">Export CSV</button>
+          <a id="downloadLink" class="download-link" hidden>CSV ready</a>
+        </div>
+      </header>
+
+      <div class="workspace-layout">
+        <aside id="filterDrawer" class="filter-drawer" aria-label="Visualization filters">
+          <button id="closeFilters" class="drawer-arrow" type="button" aria-label="Collapse filters"></button>
+          <div class="drawer-content">
+            <div class="drawer-header">
+              <div>
+                <p class="eyebrow">Controls</p>
+                <h2>Filter View</h2>
+              </div>
+            </div>
+            <section class="controls" aria-label="Visualization controls">
+              <label>
+                Term View
+                <select id="semesterFilter">
+                  <option value="all">All terms</option>
+                  <option value="year-1">Year 1</option>
+                  <option value="y1-fall">Fall Year 1</option>
+                  <option value="y1-spring">Spring Year 1</option>
+                  <option value="year-2">Year 2</option>
+                  <option value="y2-fall">Fall Year 2</option>
+                  <option value="y2-spring">Spring Year 2</option>
+                </select>
+              </label>
+              <label>
+                Course
+                <select id="courseFilter">
+                  <option value="all">All courses</option>
+                </select>
+              </label>
+              <label>
+                Assignment Type
+                <select id="typeFilter">
+                  <option value="all">All types</option>
+                </select>
+              </label>
+              <label>
+                Search
+                <input id="searchInput" type="search" placeholder="paper, quiz, group..." />
+              </label>
+              <label>
+                Weekly Field Hours
+                <input id="fieldHoursInput" type="number" min="0" max="40" step="0.5" />
+              </label>
+              <label>
+                Weekly Job Hours
+                <input id="jobHoursInput" type="number" min="0" max="80" step="0.5" />
+              </label>
+              <label>
+                Other Outside Hours
+                <input id="outsideHoursInput" type="number" min="0" max="40" step="0.5" />
+              </label>
+              <div class="toggle-group" role="group" aria-label="Filter toggles">
+                <label><input id="majorOnly" type="checkbox" /> Major only</label>
+                <label><input id="groupOnly" type="checkbox" /> Group work</label>
+                <label><input id="writingOnly" type="checkbox" /> Writing-heavy</label>
+                <label><input id="gradedOnly" type="checkbox" /> Graded only</label>
+                <label><input id="includeField" type="checkbox" checked /> Field hours</label>
+                <label><input id="includeOutside" type="checkbox" /> Outside effort</label>
+                <label><input id="moveMode" type="checkbox" /> Restructure mode</label>
+              </div>
+            </section>
+          </div>
+        </aside>
+
+        <main>
+          <section class="summary-strip" aria-label="Workload summary">
+            <div class="metric">
+              <span class="metric-label">Highest visible week</span>
+              <strong id="highestWeek">-</strong>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Overload weeks</span>
+              <strong id="overloadWeeks">-</strong>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Visible items</span>
+              <strong id="visibleItems">-</strong>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Scenario assumptions</span>
+              <strong id="fieldAssumption">-</strong>
+            </div>
+          </section>
+
+          <section class="pressure-section" aria-labelledby="pressureTitle">
+            <div class="section-heading">
+              <h2 id="pressureTitle">Weekly Pressure</h2>
+              <p>Totals update as filters change and as cards move in restructure mode.</p>
+            </div>
+            <div id="pressureCharts" class="pressure-charts"></div>
+          </section>
+
+          <section class="insights-section" aria-labelledby="insightsTitle">
+            <div class="section-heading">
+              <h2 id="insightsTitle">Summary Info</h2>
+              <p>Current patterns and curriculum suggestions update with the visible map.</p>
+            </div>
+            <div id="insights" class="insights-grid"></div>
+          </section>
+
+          <section class="legend-panel" aria-label="Legend">
+            <div id="typeLegend" class="legend-list"></div>
+            <div class="pressure-legend">
+              <span><i class="swatch manageable"></i>Manageable</span>
+              <span><i class="swatch busy"></i>Busy</span>
+              <span><i class="swatch high"></i>High</span>
+              <span><i class="swatch overload"></i>Overload</span>
+            </div>
+          </section>
+
+          <section class="map-section" aria-labelledby="mapTitle">
+            <div class="section-heading">
+              <div>
+                <h2 id="mapTitle">Course Map</h2>
+                <p id="moveHint">Turn on restructure mode to drag assignment cards within a course row and test schedule changes.</p>
+              </div>
+              <div class="map-actions">
+                <button id="collapseAllCourses" class="secondary-button compact-button" type="button">Collapse Courses</button>
+                <button id="expandAllCourses" class="secondary-button compact-button" type="button">Expand Courses</button>
+              </div>
+            </div>
+            <div id="maps" class="maps"></div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <dialog id="detailDialog">
+      <div class="dialog-header">
+        <h2 id="dialogTitle">Assignment</h2>
+        <button id="closeDialog" type="button" aria-label="Close">×</button>
+      </div>
+      <div id="dialogBody"></div>
+    </dialog>
+
+    <script src="./data/year1-workload-data.js"></script>
+    <script src="./src/app.js"></script>
+  </body>
+</html>
